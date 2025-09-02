@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Weather App (WeatherAPI.com)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #89f7fe, #66a6ff);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .weather-box {
+      background: #ffffffcc;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      text-align: center;
+      width: 340px;
+    }
+    button {
+      padding: 10px 15px;
+      border: none;
+      background-color: #0077cc;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #005fa3;
+    }
+    .info {
+      margin-top: 20px;
+      display: none;
+    }
+    .info img {
+      width: 80px;
+    }
+    .error {
+      color: red;
+      margin-top: 15px;
+    }
+    /* Loading spinner */
+    .loader {
+      margin: 15px auto;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #0077cc;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      display: none;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="weather-box">
+    <h2>🌍 WeatherAPI.com App</h2>
+    <button onclick="getLocationWeather()">📍 Get My Weather</button>
+
+    <!-- Loader -->
+    <div id="loader" class="loader"></div>
+
+    <div id="weatherInfo" class="info">
+      <h3 id="loc"></h3>
+      <img id="icon" alt="Weather Icon">
+      <p><strong>Temperature:</strong> <span id="temp"></span>°C</p>
+      <p><strong>Condition:</strong> <span id="cond"></span></p>
+      <p><strong>Humidity:</strong> <span id="hum"></span>%</p>
+      <p><strong>Wind Speed:</strong> <span id="wind"></span> kph</p>
+      <p><strong>🌧 Rain (Precipitation):</strong> <span id="rain"></span> mm</p>
+    </div>
+    <p id="error" class="error"></p>
+  </div>
+
+  <script>
+    const apiKey = "120901aaa8874585af1182057250109"; // Your WeatherAPI key
+    const loader = document.getElementById("loader");
+
+    async function fetchWeather(lat, lon) {
+      const infoDiv = document.getElementById("weatherInfo");
+      const errorEl = document.getElementById("error");
+
+      loader.style.display = "block"; 
+      infoDiv.style.display = "none";
+      errorEl.textContent = "";
+
+      const endpoint = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${lat},${lon}`;
+
+      try {
+        const res = await fetch(endpoint);
+        if (!res.ok) throw new Error("Unable to fetch weather data");
+
+        const data = await res.json();
+
+        document.getElementById("loc").textContent = `${data.location.name}, ${data.location.country}`;
+        document.getElementById("temp").textContent = data.current.temp_c;
+        document.getElementById("cond").textContent = data.current.condition.text;
+        document.getElementById("hum").textContent = data.current.humidity;
+        document.getElementById("wind").textContent = data.current.wind_kph;
+        document.getElementById("rain").textContent = data.current.precip_mm;
+        document.getElementById("icon").src = `https:${data.current.condition.icon}`;
+
+        loader.style.display = "none"; 
+        infoDiv.style.display = "block";
+      } catch (err) {
+        loader.style.display = "none";
+        errorEl.textContent = err.message;
+        infoDiv.style.display = "none";
+      }
+    }
+
+    function getLocationWeather() {
+      const errorEl = document.getElementById("error");
+      loader.style.display = "block"; 
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            fetchWeather(lat, lon);
+          },
+          (error) => {
+            loader.style.display = "none";
+            errorEl.textContent = "Location access denied or unavailable.";
+          }
+        );
+      } else {
+        loader.style.display = "none";
+        errorEl.textContent = "Geolocation is not supported by this browser.";
+      }
+    }
+
+    window.onload = getLocationWeather;
+  </script>
+</body>
+</html>
