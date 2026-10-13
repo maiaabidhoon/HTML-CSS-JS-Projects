@@ -35,7 +35,7 @@
     </div>
 
     <div class="copyright">
-      <p>BaniDeveloper</p>
+      <p>Aabid Husain</p>
     </div>
 
     <script src="script.js"></script>
